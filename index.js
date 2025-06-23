@@ -19,8 +19,8 @@ waxOn.setLayoutPath('./views/layouts');
 
 app.use(express.static('public'));
 
-// Setup form processing
-app.use(express.urlencoded({ extended: true }));
+// To enable form processing
+app.use(express.urlencoded({ extended: true })); // true allows forms to contain arrays and objects
 
 async function main() {
     let connection = await mysql.createConnection({
@@ -54,6 +54,27 @@ async function main() {
         res.render('customers/index', {
             customers: customers
         });
+    })
+
+    app.get('/customers/create', async function(req, res){
+        const [companies] = await connection.execute(`SELECT company_id, name FROM Companies`)
+        res.render('customers/create', {
+            // pass the company rows into the hbs file
+            companies: companies
+        })
+    })
+
+    // need this for when u click on the submit form
+    app.post('/customers/create', async function(req, res) {
+        const {first_name, last_name, rating, company_id} = req.body;
+        const sql = `INSERT INTO Customers (first_name, last_name, rating, company_id)
+VALUES (?, ?, ?, ?);`
+        const bindings = [first_name, last_name, rating, company_id]
+        // prepare statements - defence against SQL injection
+        await connection.execute(sql, bindings);
+        // bindings will be treated as data
+        console.log(req.body);
+        res.redirect('/customers'); // tells browser to go to send a URL
     })
 
     app.get('/about-us', function (req, res) {
