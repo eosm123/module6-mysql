@@ -1,3 +1,9 @@
+-- usually instead of typing ddl into the terminal, we type into .sql and give it the name of schema
+-- 1. allows us to save the ddl on github
+-- 2. group setting each developer will nid a copy of this schema.sql -> pull from github and run it
+-- allows for changes in this tables to be tracked on github in team setting
+-- 
+
 -- SQL Schema for Financial Advising Company
 CREATE DATABASE crm;
 
