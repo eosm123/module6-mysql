@@ -19,7 +19,9 @@ waxOn.setLayoutPath('./views/layouts');
 
 app.use(express.static('public'));
 
-// To enable form processing
+// To enable form processing -> this is V IMPT if u want express app to receive forms provided by web browser
+// Without the below, when u console.log(req.body) -> get undefined 
+// Older versions use body-parser
 app.use(express.urlencoded({ extended: true })); // true allows forms to contain arrays and objects
 
 async function main() {
@@ -85,6 +87,46 @@ VALUES (?, ?, ?, ?);`
         res.render('contact-us')
     })
 
+    // Read/Display all employees
+    app.get('/employees', async function (req, res) {
+        const [employees] = await connection.query(`
+            SELECT first_name, last_name, Departments.name AS "department_name" FROM Employees JOIN Departments
+                ON Employees.department_id = Departments.department_id;`)
+        // render the template and the latter is for employees to go into the template
+        res.render('employees/index', {
+            'employees': employees
+            // employees
+            // above also work cos the key and value are the same name
+        });
+    })
+
+    app.get('/employees/create', async function(req,res) {
+        const [departments] = await connection.execute(`SELECT * FROM Departments`)
+        res.render('employees/create', {
+            departments
+        })
+    }) 
+
+    app.post('/employees/create', async function(req, res) {
+        // res.send("Form received");
+        try {
+            const bindings = [req.body.first_name, req.body.last_name, req.body.department_id];
+            await connection.execute(`
+                INSERT INTO Employees (first_name, last_name, department_id)
+                    VALUES (?, ?, ?);`, bindings)
+                    // cannot use ${req.body.first_name, ...} in the VALUES () as it is prone to SQL injection
+                    // above is prepared statement that helps to combat SQL injection
+        } catch (e) {
+            console.log(e)
+        } finally {
+            res.redirect('/employees');
+            // finally always executes, while try and catch is either or
+        }
+
+
+    })
+
+    
 
 }
 
