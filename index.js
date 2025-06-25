@@ -48,19 +48,52 @@ async function main() {
         });
     });
 
+    // this is where u show all customers -> best place to put search engine
     app.get('/customers', async function (req, res) {
+        // since it is a search string for the search engine
+        // use req.query (submit form via get) instead of req.body (submit form via post)
+        const {first_name, last_name, rating, company_id} = req.query;
+        let basicQuery = `SELECT * FROM Customers JOIN Companies
+                ON Customers.company_id = Companies.company_id WHERE 1`
+                // WHERE 1 means its always true
+        // take note that ur basic query shud not have ; at the back
+        // if the user enter first_name in search engine, modify the basic query with a WHERE to search for it
+        const bindings = [];
+        if (first_name) {
+            basicQuery += " AND first_name = ?";
+            bindings.push(first_name);
+        }
+
+        if (last_name) {
+            basicQuery += " AND last_name = ?";
+            bindings.push(last_name);
+        }
+
+        if (rating) {
+            basicQuery += " AND rating = ?";
+            bindings.push(rating);
+        }
+
+        if (company_id) {
+            basicQuery += " AND Customers.company_id = ?";
+            bindings.push(company_id);
+        }
+        console.log(bindings)
+
         // connection.execute will return array
         // only index 0 contains rows data
         // other indexes contain meta data
-        let [customers] = await connection.execute(`
-            SELECT * FROM Customers JOIN Companies
-                ON Customers.company_id = Companies.company_id;`);
+        let [customers] = await connection.execute(basicQuery, bindings);
         // in mysql2 just write the query directly
         // the code above is array destructuring -> assigning each of the elements in the array to a variable
         // above is the same as let results = await connection.execute('...')
         // let customers = results[0]
+
+        // search form shud be inside customers/index.hbs
         res.render('customers/index', {
-            customers: customers
+            customers: customers,
+            first_name, last_name, rating, company_id
+            // parsing the values into the hbs file
         });
     })
 
@@ -181,7 +214,7 @@ VALUES (?, ?, ?, ?);`
 
     })
 
-    
+
 
 }
 
