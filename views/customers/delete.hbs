@@ -1,0 +1,18 @@
+{{#extends "base"}}
+{{#block "content"}}
+
+<form method="POST" class="mt-3">
+    <div class="alert alert-danger">
+        <p>Are you sure you want to delete {{customer.first_name}} {{customer.last_name}}?</p>
+        <div>
+            <input type="submit" class="btn btn-danger" value="Confirm Delete"/>
+            <a href="/customers" class="btn btn-success">Cancel Delete</a>
+            {{!-- use a link -> click on it and go back to /customers route and use BS class to style it to look
+            like a button, emulate deletion --}}
+        </div>
+    </div>
+
+</form>
+
+{{/block}}
+{{/extends}}

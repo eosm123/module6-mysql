@@ -4,6 +4,12 @@ const waxOn = require('wax-on');
 require('dotenv').config();
 // const { createConnection } = require('mysql2/promise');
 
+// handlebars helpers setup
+const helpers = require('handlebars-helpers');
+helpers({
+    'handlebars': hbs.handlebars
+})
+
 // use the version of mysql2 that supports promises -> await a promise (await/async) 
 const mysql = require('mysql2/promise');
 
@@ -77,6 +83,55 @@ VALUES (?, ?, ?, ?);`
         // bindings will be treated as data
         console.log(req.body);
         res.redirect('/customers'); // tells browser to go to send a URL
+    })
+
+    app.get('/customers/:id/update', async function(req, res) {
+        const customerId = req.params.id;
+        const [rows] = await connection.execute(`SELECT * FROM Customers WHERE customer_id = ?`, [customerId])
+        const [companies] = await connection.execute(`SELECT * FROM Companies`)
+        res.render('customers/update', {
+            customer: rows[0],
+            companies
+            // companies will show up as in the options for the select
+        });
+    })
+
+    app.post('/customers/:id/update', async function(req, res) {
+        const customerId = req.params.id;
+        const {first_name, last_name, rating, company_id} = req.body;
+        await connection.execute(`
+            UPDATE Customers SET first_name=?, last_name=?, rating=?, company_id=?
+                WHERE customer_id=?;`, [first_name, last_name, rating, company_id, customerId]);
+        res.redirect('/customers');
+    })
+
+    // dynamic web app only can have get and post (cannot use delete unlike restful api)
+    // DWA also should ask if want to confirm delete, unlike restful api where the front-end will settle and ask if
+    // the customer want to delete or not
+    app.get('/customers/:id/delete', async function(req, res) {
+        const customerId = req.params.id;
+        // connection.execute will always return an array
+        const [rows] = await connection.execute(`SELECT * FROM Customers WHERE customer_id = ?`, [customerId]);
+        const customer = rows[0]
+        res.render('customers/delete', {
+            // render should always be relative URL so no / at the start
+            customer
+        })
+    })
+
+    app.post('/customers/:id/delete', async function(req, res) {
+        try {
+            // this is where u do the deletion
+            const customerId = req.params.id;
+            await connection.execute(`DELETE FROM Sales WHERE customer_id = ?`, [customerId]);
+            await connection.execute(`DELETE FROM EmployeeCustomer WHERE customer_id = ?`, [customerId]);
+            await connection.execute(`DELETE FROM Customers WHERE customer_id = ?;`, [customerId])
+            res.redirect('/customers')
+        } catch (e) {
+            console.log(e);
+            res.send("Unable to delete because of relationship. Press [BACK] and try again.")
+        }
+
     })
 
     app.get('/about-us', function (req, res) {

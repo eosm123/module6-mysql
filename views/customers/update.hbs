@@ -1,0 +1,39 @@
+{{!-- update.hbs nid to prepopulate the input/select with values to allow a prepopulated update form --}}
+
+{{#extends "base"}}
+
+{{#block "content"}}
+
+<h1>Updating Customer: {{customer.first_name}} {{customer.last_name}}</h1>
+<form method="POST">
+    {{!-- http post method to send in a form --}}
+    <div class="mb-3">
+        <label>First Name</label>
+        <input type="text" name="first_name" class="form-control" value="{{customer.first_name}}"/>
+        {{!-- if using browser submit button, need to have name attribute! if not the data would not be submitted to the server --}}
+    </div>
+    <div class="mb-3">
+        <label>Last Name</label>
+        <input type="text" name="last_name" class="form-control" value="{{customer.last_name}}"/>
+    </div>
+    <div class="mb-3">
+        <label>Rating</label>
+        <input type="text" name="rating" class="form-control" value="{{customer.rating}}"/>
+    </div>
+    <div class="mb-3">
+        <label>Company</label>
+        <select name="company_id" class="form-control" value="{{customer.company_id}}">
+            {{#each companies}}
+            <option value="{{this.company_id}}" {{#eq this.company_id  ../customer.company_id}}selected {{/eq}}>
+            {{!-- eq is kinda like an if statement, check online for handlebar helpers --}}
+            {{!-- need to use ../ as it is within an each block and refering to a variable outside of its scope --}}
+                {{this.name}}</option>
+            {{/each}}
+        </select>
+    </div>
+    <input type="submit" class="btn btn-primary mt-3"/>
+    {{!-- need to have submit button! --}}
+</form>
+
+{{/block }}
+{{/extends }}
